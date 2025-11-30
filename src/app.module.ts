@@ -8,6 +8,11 @@ import { PlanSubject } from './entities/plan-subject.entity';
 import { Prerequisite } from './entities/prerequisite.entity';
 import { StudyPlan } from './entities/study-plan.entity';
 import { Subject } from './entities/subject.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { PlanSubjectService } from './services/plan-subject.service';
+import { PrerequisiteService } from './services/prerequisite.service';
+
+const NATS_SERVICE = 'NATS_SERVICE';
 
 @Module({
   imports: [
@@ -15,8 +20,8 @@ import { Subject } from './entities/subject.entity';
       ssl: envs.state === 'production',
       extra: {
         ssl: envs.state === 'production'
-        ? { rejectUnauthorized: false }
-        : false
+          ? { rejectUnauthorized: false }
+          : false
       },
       type: 'postgres',
       host: envs.dbHost,
@@ -25,13 +30,6 @@ import { Subject } from './entities/subject.entity';
       password: envs.dbPassword,
       database: envs.dbName,
       autoLoadEntities: true,
-      // entities: [
-      //   Career,
-      //   Subject,
-      //   StudyPlan,
-      //   PlanSubject,
-      //   Prerequisite,
-      // ],
     }),
     TypeOrmModule.forFeature([
       Career,
@@ -39,9 +37,18 @@ import { Subject } from './entities/subject.entity';
       StudyPlan,
       PlanSubject,
       Prerequisite,
-    ])
+    ]),
+    ClientsModule.register([
+      {
+        name: NATS_SERVICE,
+        transport: Transport.NATS,
+        options: {
+          servers: [`nats://${envs.natsHost}:${envs.natsPort}`],
+        }
+      },
+    ]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PlanSubjectService, PrerequisiteService],
 })
-export class AppModule {}
+export class AppModule { }
