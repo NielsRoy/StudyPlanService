@@ -21,16 +21,23 @@ export class StudyPlanService {
      * @returns Complete study plan with subjects and prerequisites
      */
     async getStudyPlanById(studyPlanId: number): Promise<StudyPlanResponseDto> {
-        const studyPlan = await this.studyPlanRepository.findOne({
-            where: { id: studyPlanId },
-            relations: ['career', 'planSubjects', 'planSubjects.subject', 'planSubjects.prerequisites', 'planSubjects.prerequisites.prerequisitePlanSubject', 'planSubjects.prerequisites.prerequisitePlanSubject.subject'],
-        });
+        try {
+            const studyPlan = await this.studyPlanRepository.findOne({
+                where: { id: studyPlanId },
+                relations: ['career', 'planSubjects', 'planSubjects.subject', 'planSubjects.prerequisites', 'planSubjects.prerequisites.prerequisitePlanSubject', 'planSubjects.prerequisites.prerequisitePlanSubject.subject'],
+            });
 
-        if (!studyPlan) {
-            throw new NotFoundException(`Study plan with ID ${studyPlanId} not found`);
+            if (!studyPlan) {
+                throw new NotFoundException(`Study plan with ID ${studyPlanId} not found`);
+            }
+
+            return this.buildStudyPlanResponse(studyPlan);
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to get study plan: ${error.message}`);
         }
-
-        return this.buildStudyPlanResponse(studyPlan);
     }
 
     /**
@@ -85,15 +92,22 @@ export class StudyPlanService {
      * @returns Career name
      */
     async getCareerNameByStudyPlanId(studyPlanId: number): Promise<string> {
-        const studyPlan = await this.studyPlanRepository.findOne({
-            where: { id: studyPlanId },
-            relations: ['career'],
-        });
+        try {
+            const studyPlan = await this.studyPlanRepository.findOne({
+                where: { id: studyPlanId },
+                relations: ['career'],
+            });
 
-        if (!studyPlan) {
-            throw new NotFoundException(`Study plan with ID ${studyPlanId} not found`);
+            if (!studyPlan) {
+                throw new NotFoundException(`Study plan with ID ${studyPlanId} not found`);
+            }
+
+            return studyPlan.career.name;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to get career name: ${error.message}`);
         }
-
-        return studyPlan.career.name;
     }
 }
