@@ -78,4 +78,22 @@ export class StudyPlanService {
             name: prerequisite.prerequisitePlanSubject.subject.name,
         }));
     }
+
+    /**
+     * Get only the career name for a study plan (lightweight query)
+     * @param studyPlanId - The ID of the study plan
+     * @returns Career name
+     */
+    async getCareerNameByStudyPlanId(studyPlanId: number): Promise<string> {
+        const studyPlan = await this.studyPlanRepository.findOne({
+            where: { id: studyPlanId },
+            relations: ['career'],
+        });
+
+        if (!studyPlan) {
+            throw new NotFoundException(`Study plan with ID ${studyPlanId} not found`);
+        }
+
+        return studyPlan.career.name;
+    }
 }

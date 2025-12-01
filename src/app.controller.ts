@@ -26,4 +26,9 @@ export class AppController {
   getPrerequisitesByPlanSubjectIds(@Payload() planSubjectIds: number[]) {
     return this.prerequisiteService.getPrerequisitesByPlanSubjectIds(planSubjectIds);
   }
+
+  @MessagePattern('get_career_name_by_study_plan_id')
+  getCareerNameByStudyPlanId(@Payload('studyPlanId', ParseIntPipe) studyPlanId: number) {
+    return this.studyPlanService.getCareerNameByStudyPlanId(studyPlanId);
+  }
 }
