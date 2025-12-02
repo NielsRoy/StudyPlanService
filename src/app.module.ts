@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { envs } from './config/env';
+import { env } from './config/env';
 import { Career } from './entities/career.entity';
 import { PlanSubject } from './entities/plan-subject.entity';
 import { Prerequisite } from './entities/prerequisite.entity';
@@ -11,24 +11,25 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PlanSubjectService } from './services/plan-subject.service';
 import { PrerequisiteService } from './services/prerequisite.service';
 import { StudyPlanService } from './services/study-plan.service';
+import { HealthController } from './health.controller';
 
 const NATS_SERVICE = 'NATS_SERVICE';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      ssl: envs.state === 'production',
+      ssl: env.STATE === 'production',
       extra: {
-        ssl: envs.state === 'production'
+        ssl: env.STATE === 'production'
           ? { rejectUnauthorized: false }
           : false
       },
       type: 'postgres',
-      host: envs.dbHost,
-      port: envs.dbPort,
-      username: envs.dbUsername,
-      password: envs.dbPassword,
-      database: envs.dbName,
+      host: env.DB_HOST,
+      port: env.DB_PORT,
+      username: env.DB_USERNAME,
+      password: env.DB_PASSWORD,
+      database: env.DB_NAME,
       autoLoadEntities: true,
     }),
     TypeOrmModule.forFeature([
@@ -43,12 +44,12 @@ const NATS_SERVICE = 'NATS_SERVICE';
         name: NATS_SERVICE,
         transport: Transport.NATS,
         options: {
-          servers: [`nats://${envs.natsHost}:${envs.natsPort}`],
+          servers: [env.NATS_SERVER_URL],
         }
       },
     ]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [PlanSubjectService, PrerequisiteService, StudyPlanService],
 })
 export class AppModule { }
